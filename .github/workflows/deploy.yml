@@ -25,7 +25,7 @@ jobs:
       uses: actions/checkout@v6
 
     - name: 設定 Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
     - name: 登入 GitHub Container Registry
       if: github.event_name != 'pull_request'
@@ -73,7 +73,7 @@ jobs:
       uses: actions/checkout@v6
 
     - name: 設定 Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
     - name: 登入 GitHub Container Registry
       if: github.event_name != 'pull_request'
