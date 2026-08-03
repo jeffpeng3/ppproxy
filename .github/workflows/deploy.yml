@@ -37,7 +37,7 @@ jobs:
 
     - name: 擷取server中繼資料
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         tags: |
@@ -85,7 +85,7 @@ jobs:
 
     - name: 擷取client中繼資料
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-client
         tags: |
