@@ -23,13 +23,10 @@ RUN apk add --no-cache nftables
 RUN apk add --no-cache tzdata
 RUN apk add --no-cache iproute2
 RUN apk add --no-cache curl iputils-ping
-RUN apk add --no-cache dhcpcd
 
 WORKDIR /app
 ADD rt_tables /etc/iproute2/rt_tables
 ADD nftables.conf /etc/nftables.conf
-COPY dhcpcd-hooks/20-ppproxy-ipv6 /usr/lib/dhcpcd/dhcpcd-hooks/20-ppproxy-ipv6
-RUN chmod 755 /usr/lib/dhcpcd/dhcpcd-hooks/20-ppproxy-ipv6
 COPY gost ./gost
 COPY --from=builder /app/ppproxy/target/x86_64-unknown-linux-musl/release/ppproxy .
 
