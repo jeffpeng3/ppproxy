@@ -7,6 +7,14 @@ services:
     devices:
       - /dev/ppp:/dev/ppp
       - /dev/net/tun:/dev/net/tun
+    # dhcpcd writes net.ipv4.conf.<if>.promote_secondaries; /proc/sys is read
+    # only in an unprivileged container, so make new interfaces inherit it.
+    # IPv6 forwarding is required to route tun traffic out of the ppp links.
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.default.promote_secondaries=1
+      - net.ipv6.conf.all.forwarding=1
+      - net.ipv6.conf.default.forwarding=1
     environment:
       - TZ=Asia/Taipei
       - RUST_LOG=${RUST_LOG:-info}
