@@ -359,6 +359,20 @@ impl PPPoEManager {
         data.clone()
     }
 
+    /// Read the global IPv6 address of an interface, if it has one.
+    pub async fn ipv6_address(&self, interface: &str) -> Option<String> {
+        let output = Command::new("ip")
+            .args(["-6", "-o", "addr", "show", "dev", interface, "scope", "global"])
+            .output()
+            .await
+            .ok()?;
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let line = stdout.lines().next()?;
+        let address = line.split_whitespace().nth(3)?;
+        Some(address.split('/').next()?.to_string())
+    }
+
     pub async fn rotate_ips(&self) {
         debug!("Starting IP rotation for all clients");
 

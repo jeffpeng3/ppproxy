@@ -50,6 +50,9 @@ pub async fn status(ctx: Context<'_>) -> Result<()> {
         let mut value = String::new();
         if let Some(ip) = info.local_ip {
             value.push_str(&format!("**IP:** {}\n", ip));
+            if let Some(ip6) = manager.ipv6_address(&interface).await {
+                value.push_str(&format!("**IPv6:** {}\n", ip6));
+            }
             if let Some(connected_at) = info.connected_at {
                 let duration = chrono::Utc::now() - connected_at;
                 let hours = duration.num_hours();
