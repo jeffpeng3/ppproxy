@@ -156,7 +156,8 @@ impl ProxyServer {
             services,
             bypasses: vec![bypass],
             api: ApiConfig {
-                addr: ":18080".to_string(),
+                addr: env::var("GOST_API_ADDR")
+                    .unwrap_or_else(|_| "127.0.0.1:18080".to_string()),
             },
             metrics: MetricsConfig {
                 addr: ":9000".to_string(),
