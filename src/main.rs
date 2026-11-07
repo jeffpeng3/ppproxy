@@ -11,7 +11,7 @@ mod proxy;
 
 use crate::core::config::AppConfig;
 use crate::core::logger;
-use crate::network::route::init_route;
+use crate::network::route::{init_route, pin_eth0_ipv6_default};
 use crate::pppoe::manager::PPPoEManager;
 use crate::proxy::server::ProxyServer;
 use anyhow::{Context, Result};
@@ -28,6 +28,8 @@ async fn main() -> Result<()> {
     let _ = init_route(&config.gateway)
         .await
         .map_err(|x| error!("{x:?}"));
+
+    tokio::spawn(pin_eth0_ipv6_default());
 
     let (event_tx, event_rx) = mpsc::channel(100);
 

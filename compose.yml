@@ -8,17 +8,16 @@ services:
       - /dev/ppp:/dev/ppp
       - /dev/net/tun:/dev/net/tun
     # HiNet hands out the IPv6 address for the PPP link itself via router
-    # advertisement. Accepting RAs must be forced because forwarding is on,
-    # and the default route from the RA is ignored so that each ppp link is
-    # only reachable through the policy routing tables.
+    # advertisement. RAs have to be accepted even though forwarding is on.
+    # The ppp links also receive an RA default route; the daemon pins the LAN
+    # default on eth0 with a lower metric and removes those RA defaults, so
+    # ppp links never take over the main table.
     sysctls:
       - net.ipv4.ip_forward=1
       - net.ipv6.conf.all.forwarding=1
       - net.ipv6.conf.default.forwarding=1
       - net.ipv6.conf.all.accept_ra=2
       - net.ipv6.conf.default.accept_ra=2
-      - net.ipv6.conf.all.accept_ra_defrtr=0
-      - net.ipv6.conf.default.accept_ra_defrtr=0
     environment:
       - TZ=Asia/Taipei
       - RUST_LOG=${RUST_LOG:-info}
