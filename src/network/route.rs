@@ -22,6 +22,25 @@ pub async fn init_route(gateway: &str) -> Result<()> {
                 error!("Failed to add rule: {}", e);
                 e
             })?;
+
+        Command::new("ip")
+            .args([
+                "-6",
+                "rule",
+                "add",
+                "iif",
+                format!("tun{i}").as_str(),
+                "table",
+                &table_id.to_string(),
+                "prio",
+                &table_id.to_string(),
+            ])
+            .output()
+            .await
+            .map_err(|e| {
+                error!("Failed to add IPv6 rule: {}", e);
+                e
+            })?;
     }
 
     Command::new("ip")

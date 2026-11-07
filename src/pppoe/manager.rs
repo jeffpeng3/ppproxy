@@ -275,6 +275,25 @@ impl PPPoEManager {
                 error!("Failed to add default route: {}", e);
                 e
             })?;
+
+        Command::new("ip")
+            .args([
+                "-6",
+                "route",
+                "add",
+                "default",
+                "dev",
+                interface,
+                "table",
+                &table_id.to_string(),
+            ])
+            .output()
+            .await
+            .map_err(|e| {
+                error!("Failed to add IPv6 default route: {}", e);
+                e
+            })?;
+
         Ok(())
     }
 
