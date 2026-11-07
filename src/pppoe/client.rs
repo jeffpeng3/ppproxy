@@ -88,20 +88,22 @@ impl PPPoEClient {
                         if self.max_reconnect_attempts == 0 || self.reconnect_attempts < self.max_reconnect_attempts {
                             self.reconnect_attempts += 1;
 
-                            let delay = std::cmp::min(
-                                5 * self.reconnect_attempts as u64,
-                                30
-                            );
+                            // 5s, 10s, 20s, 40s, then 60s, with up to 3s of jitter.
+                            // A session rejected by the BRAS needs time to be released,
+                            // and the jitter keeps the sessions from retrying in lockstep.
+                            let exp = std::cmp::min(self.reconnect_attempts.saturating_sub(1), 4);
+                            let backoff = std::cmp::min(5u64 << exp, 60);
+                            let delay_ms = backoff * 1000 + jitter_ms();
 
                             info!(
-                                "{}: Auto-reconnecting in {} seconds (attempt {}/{})",
+                                "{}: Auto-reconnecting in {:.1} seconds (attempt {}/{})",
                                 self.interface,
-                                delay,
+                                delay_ms as f64 / 1000.0,
                                 self.reconnect_attempts,
                                 if self.max_reconnect_attempts == 0 { "∞".to_string() } else { self.max_reconnect_attempts.to_string() }
                             );
 
-                            tokio::time::sleep(tokio::time::Duration::from_secs(delay)).await;
+                            tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms)).await;
                             self.connect().await;
                         } else {
                             error!(
@@ -202,3 +204,11 @@ impl PPPoEClient {
     }
 }
 
+
+/// A small pseudo-random delay used to spread out reconnects.
+fn jitter_ms() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|elapsed| u64::from(elapsed.subsec_nanos()) % 3000)
+        .unwrap_or(0)
+}
