@@ -15,7 +15,6 @@ pub struct PPPoEClient {
     command_receiver: mpsc::Receiver<ClientCommand>,
     should_be_connected: bool,
     reconnect_attempts: u32,
-    max_reconnect_attempts: u32,
 }
 
 impl PPPoEClient {
@@ -35,7 +34,6 @@ impl PPPoEClient {
             command_receiver,
             should_be_connected: false,
             reconnect_attempts: 0,
-            max_reconnect_attempts: 0,
         }
     }
 
@@ -85,34 +83,24 @@ impl PPPoEClient {
                     }).await;
 
                     if self.should_be_connected {
-                        if self.max_reconnect_attempts == 0 || self.reconnect_attempts < self.max_reconnect_attempts {
-                            self.reconnect_attempts += 1;
+                        self.reconnect_attempts += 1;
 
-                            // 5s, 10s, 20s, 40s, then 60s, with up to 3s of jitter.
-                            // A session rejected by the BRAS needs time to be released,
-                            // and the jitter keeps the sessions from retrying in lockstep.
-                            let exp = std::cmp::min(self.reconnect_attempts.saturating_sub(1), 4);
-                            let backoff = std::cmp::min(5u64 << exp, 60);
-                            let delay_ms = backoff * 1000 + jitter_ms();
+                        // 5s, 10s, 20s, 40s, then 60s, with up to 3s of jitter.
+                        // A session rejected by the BRAS needs time to be released,
+                        // and the jitter keeps the sessions from retrying in lockstep.
+                        let exp = std::cmp::min(self.reconnect_attempts.saturating_sub(1), 4);
+                        let backoff = std::cmp::min(5u64 << exp, 60);
+                        let delay_ms = backoff * 1000 + jitter_ms();
 
-                            info!(
-                                "{}: Auto-reconnecting in {:.1} seconds (attempt {}/{})",
-                                self.interface,
-                                delay_ms as f64 / 1000.0,
-                                self.reconnect_attempts,
-                                if self.max_reconnect_attempts == 0 { "∞".to_string() } else { self.max_reconnect_attempts.to_string() }
-                            );
+                        info!(
+                            "{}: Auto-reconnecting in {:.1} seconds (attempt {})",
+                            self.interface,
+                            delay_ms as f64 / 1000.0,
+                            self.reconnect_attempts
+                        );
 
-                            tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms)).await;
-                            self.connect().await;
-                        } else {
-                            error!(
-                                "{}: Max reconnection attempts ({}) reached, giving up",
-                                self.interface,
-                                self.max_reconnect_attempts
-                            );
-                            self.should_be_connected = false;
-                        }
+                        tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms)).await;
+                        self.connect().await;
                     } else {
                         info!("{}: Manual disconnect, not auto-reconnecting", self.interface);
                     }
@@ -124,24 +112,22 @@ impl PPPoEClient {
     async fn connect(&mut self) {
         info!("Connecting {}", self.interface);
 
-        let cmd = vec![
-            "pppd".to_string(),
-            "pty".to_string(),
-            "pppoe".to_string(),
-            "noauth".to_string(),
-            "nodetach".to_string(),
-            "usepeerdns".to_string(),
-            "+ipv6".to_string(),
-            "ifname".to_string(),
-            self.interface.clone(),
-            "user".to_string(),
-            self.username.clone(),
-            "password".to_string(),
-            self.password.clone(),
+        let args = [
+            "pty",
+            "pppoe",
+            "noauth",
+            "nodetach",
+            "+ipv6",
+            "ifname",
+            &self.interface,
+            "user",
+            &self.username,
+            "password",
+            &self.password,
         ];
 
         match Command::new("pppd")
-            .args(&cmd[1..])
+            .args(args)
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
             .spawn()
