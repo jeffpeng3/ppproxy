@@ -44,11 +44,11 @@ jobs:
       uses: actions/checkout@v6
 
     - name: 設定 Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
     - name: 登入 GitHub Container Registry
       if: github.event_name != 'pull_request'
-      uses: docker/login-action@v3
+      uses: docker/login-action@v4
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
@@ -56,7 +56,7 @@ jobs:
 
     - name: 擷取server中繼資料
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         tags: |
@@ -66,7 +66,7 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - uses: robinraju/release-downloader@v1.12
+    - uses: robinraju/release-downloader@v1.13
       with:
         repository: "go-gost/gost"
         latest: true
@@ -74,7 +74,7 @@ jobs:
         extract: true
 
     - name: build and push server
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       with:
         context: .
         push: ${{ github.event_name != 'pull_request' }}
@@ -92,11 +92,11 @@ jobs:
       uses: actions/checkout@v6
 
     - name: 設定 Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
     - name: 登入 GitHub Container Registry
       if: github.event_name != 'pull_request'
-      uses: docker/login-action@v3
+      uses: docker/login-action@v4
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
@@ -104,7 +104,7 @@ jobs:
 
     - name: 擷取client中繼資料
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-client
         tags: |
@@ -114,7 +114,7 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - uses: robinraju/release-downloader@v1.12
+    - uses: robinraju/release-downloader@v1.13
       with:
         repository: "go-gost/gost"
         latest: true
@@ -122,7 +122,7 @@ jobs:
         extract: true
 
     - name: build and push client
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       with:
         context: .
         file: ./client/Dockerfile
