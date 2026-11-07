@@ -107,7 +107,10 @@ fn tun_service(index: u16, interface: &str) -> Service {
 
     let mut listener_metadata = HashMap::new();
     listener_metadata.insert("name".to_string(), interface.to_string());
-    listener_metadata.insert("net".to_string(), format!("192.168.{}.1/24", 100 + index));
+    listener_metadata.insert(
+        "net".to_string(),
+        format!("192.168.{}.1/24,fd00:{}::1/64", 100 + index, 100 + index),
+    );
 
     Service {
         name: format!("if{}-tun", index),

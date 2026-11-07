@@ -10,6 +10,7 @@ if [ -z "$SERVICE_ID" ]; then
 fi
 
 LOCAL_IP="192.168.10$SERVICE_ID.$(shuf -i 1-254 -n 1)"
+LOCAL_IP6="fd00:10${SERVICE_ID}::$(shuf -i 2-254 -n 1)"
 TARGET_PORT="888$SERVICE_ID"
 
 
@@ -21,6 +22,7 @@ echo "Service ID     : $SERVICE_ID"
 echo "Target port    : $TARGET_PORT"
 echo "Default gateway: $GATEWAY"
 echo "Local IP       : $LOCAL_IP"
+echo "Local IPv6     : $LOCAL_IP6"
 echo "==================================="
 
 
@@ -39,8 +41,8 @@ services:
     listener:
       type: tun
       metadata:
-        net: $LOCAL_IP/24
-        route: 0.0.0.0/0
+        net: $LOCAL_IP/24,$LOCAL_IP6/64
+        route: 0.0.0.0/0,::/0
     forwarder:
       nodes:
         - name: target-0
