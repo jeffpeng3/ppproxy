@@ -18,7 +18,7 @@ env:
 jobs:
   check:
     name: 檢查程式碼
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
     - name: 檢出程式碼
@@ -37,7 +37,7 @@ jobs:
 
   server:
     name: 建置並推送映像
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
     - name: 檢出程式碼
@@ -85,7 +85,7 @@ jobs:
 
   client:
     name: 建置並推送映像
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
     - name: 檢出程式碼
