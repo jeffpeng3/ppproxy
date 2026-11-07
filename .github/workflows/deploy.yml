@@ -16,6 +16,25 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  check:
+    name: 檢查程式碼
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 檢出程式碼
+      uses: actions/checkout@v6
+
+    - name: 安裝 Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy
+
+    - name: Clippy
+      run: cargo clippy --all-targets -- -D warnings
+
+    - name: 測試
+      run: cargo test
+
   server:
     name: 建置並推送映像
     runs-on: ubuntu-latest
